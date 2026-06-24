@@ -94,6 +94,8 @@ DATABASES = {
         "PORT": config("DB_PORT"),
     }
 }
+#superuser lejanei
+#vinimalubia121924
 
 
 # Password validation
