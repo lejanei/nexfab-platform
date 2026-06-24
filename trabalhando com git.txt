@@ -1,0 +1,16 @@
+Fazer o clone
+    git clone https://github.com/lejanei/nexfab-platform.git
+
+Verificar status
+    git status
+
+Iniciar o git
+    git init
+
+Sempre que iniciar o trabalho no dia 
+    git pull
+
+Sempre que fizer uma alteração no código 
+    git add .
+    git commit -m "Descrição da alteração"
+    git push
