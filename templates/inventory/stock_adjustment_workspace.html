@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="topbar">
+    <h1>⚙ Ajuste de Estoque</h1>
+    <p>
+        Registre entrada, saída ou ajuste manual do produto
+        <strong>{{ product.code }}</strong>.
+    </p>
+</div>
+
+<div class="workspace">
+
+    <div class="workspace-main">
+
+        <div class="topbar">
+            <h2>{{ product.description }}</h2>
+
+            <p><strong>Código:</strong> {{ product.code }}</p>
+            <p><strong>Saldo atual:</strong> {{ product.current_stock }}</p>
+            <p><strong>Estoque mínimo:</strong> {{ product.minimum_stock }}</p>
+        </div>
+
+        <div class="topbar">
+
+            <h2>Movimentação</h2>
+            <p>Informe o tipo, quantidade e motivo da movimentação.</p>
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        {{ form.movement_type }}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Quantidade</label>
+                        {{ form.quantity }}
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+                    <label>Motivo</label>
+                    {{ form.reason }}
+                </div>
+
+                <br>
+
+                <button
+                    type="submit"
+                    class="btn-primary">
+
+                    💾 Salvar Ajuste
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="workspace-sidebar">
+
+        <div class="summary-card">
+
+            <div class="summary-title">Produto</div>
+            <div class="summary-value" style="font-size:18px;">
+                {{ product.code }}
+            </div>
+
+            <div class="summary-title">Status</div>
+            <div class="summary-value" style="font-size:18px;">
+                {% if product.stock_status == "NORMAL" %}
+                    🟢 Normal
+                {% elif product.stock_status == "LOW" %}
+                    🟡 Baixo
+                {% else %}
+                    🔴 Crítico
+                {% endif %}
+            </div>
+
+            <div class="summary-title">Saldo Atual</div>
+            <div class="summary-value">
+                {{ product.current_stock }}
+            </div>
+
+            <div class="summary-title">Mínimo</div>
+            <div class="summary-value">
+                {{ product.minimum_stock }}
+            </div>
+
+        </div>
+
+        <div class="summary-card">
+
+            <a
+                href="{% url 'product_workspace' product.pk %}"
+                class="action-button action-secondary">
+
+                ⬅ Voltar ao Produto
+
+            </a>            
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

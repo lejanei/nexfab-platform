@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="topbar">
+    <h1>Central de Compras</h1>
+    <p>Gerencie pedidos, aprovações, compras e recebimentos.</p>
+</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="card-title">📄 Total de Pedidos</div>
+        <div class="card-value">{{ total_orders }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">🟡 Rascunhos</div>
+        <div class="card-value">{{ draft_count }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">🟢 Aprovados</div>
+        <div class="card-value">{{ approved_count }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">🔵 Comprados</div>
+        <div class="card-value">{{ purchased_count }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">✅ Recebidos</div>
+        <div class="card-value">{{ received_count }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">⚠ Reposições</div>
+        <div class="card-value">{{ critical_products_count }}</div>
+    </div>
+
+</div>
+
+<div class="topbar" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <h2>Pedidos</h2>
+        💰 Volume financeiro: <strong>R$ {{ total_value|floatformat:2 }}</strong>
+    </div>
+
+    <a href="{% url 'purchase_order_create' %}" class="btn-primary">
+        ➕ Novo Pedido
+    </a>
+</div>
+
+<table>
+    <tr>
+        <th>Número</th>
+        <th>Fornecedor</th>
+        <th>Centro de custo</th>
+        <th>Status</th>
+        <th>Prioridade</th>
+        <th>Valor</th>
+        <th>Data</th>
+        <th>Ações</th>
+    </tr>
+
+    {% for order in orders %}
+
+    <tr>
+        <td>
+            <strong>{{ order.number }}</strong>
+        </td>
+
+        <td>{{ order.supplier }}</td>
+
+        <td>{{ order.cost_center }}</td>
+
+        <td>
+            {% if order.status == "DRAFT" %}
+                <span class="badge badge-draft">🟡 Rascunho</span>
+            {% elif order.status == "APPROVED" %}
+                <span class="badge badge-created">🟢 Aprovado</span>
+            {% elif order.status == "PURCHASED" %}
+                <span class="badge badge-purchased">🔵 Comprado</span>                
+            {% elif order.status == "RECEIVED" %}
+                <span class="badge badge-received">✅ Recebido</span>
+            {% elif order.status == "CANCELLED" %}
+                <span class="badge badge-cancelled">🔴 Cancelado</span>
+            {% endif %}
+        </td>
+
+        <td>{{ order.get_priority_display }}</td>
+
+        <td>
+            <strong>R$ {{ order.calculated_total|floatformat:2 }}</strong>
+        </td>
+
+        <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+
+        <td>
+            
+            {% if order.status == "PURCHASED" %}
+                <a href="{% url 'purchase_order_receiving' order.pk %}" class="btn-table">
+                    📦 Receber
+                </a>
+                {% else %}
+                    <a href="{% url 'purchase_order_workspace' order.pk %}" class="btn-table">
+                    🚀 Workspace
+                </a>
+            {% endif %}
+
+            {% if order.status == "DRAFT" %}
+            <a
+                href="{% url 'purchase_order_delete' order.pk %}"
+                onclick="return confirm('Deseja excluir este pedido em rascunho?')"
+                style="
+                margin-left:8px;
+                color:#e53935;
+                text-decoration:none;
+                font-size:20px;
+                ">
+                🗑
+            </a>
+            {% endif %}
+        </td>
+    </tr>
+
+    {% empty %}
+
+    <tr>
+        <td colspan="8">
+            Nenhum pedido encontrado.
+        </td>
+    </tr>
+
+    {% endfor %}
+</table>
+
+<br>
+
+<div class="topbar">
+    <h2>⚠ Itens para Reposição</h2>
+    <p>Produtos com saldo abaixo do estoque mínimo.</p>
+</div>
+
+<table>
+    <tr>
+        <th>Código</th>
+        <th>Produto</th>
+        <th>Saldo</th>
+        <th>Mínimo</th>
+        <th>Sugestão Compra</th>
+        <th>Ação</th>
+    </tr>
+
+    {% for product in critical_products %}
+
+    <tr>
+        <td>{{ product.code }}</td>
+        <td>{{ product.description }}</td>
+        <td>{{ product.current_stock }}</td>
+        <td>{{ product.minimum_stock }}</td>
+        <td>
+            <strong>{{ product.suggested_purchase }}</strong>
+        </td>
+        <td>
+            <a
+                href="{% url 'create_replenishment_order' product.pk %}"
+                class="btn-table">
+                🛒 Criar Pedido
+            </a>
+        </td>
+    </tr>
+
+    {% empty %}
+
+    <tr>
+        <td colspan="6">
+            Nenhum produto abaixo do mínimo.
+        </td>
+    </tr>
+
+    {% endfor %}
+</table>
+
+{% endblock %}

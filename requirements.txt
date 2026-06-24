@@ -1,0 +1,6 @@
+Django>=5.2,<6.1
+djangorestframework
+psycopg[binary]
+python-decouple
+Pillow
+django-widget-tweaks

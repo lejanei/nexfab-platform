@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="topbar">
+    <h1>📦 Entrada em Estoque</h1>
+    <p>
+        Vincule os itens recebidos do pedido
+        <strong>{{ order.number }}</strong>
+        aos produtos cadastrados no estoque.
+    </p>
+</div>
+
+<div class="workspace">
+    
+    <div class="workspace-main">
+        <form method="POST">
+            {% csrf_token %}
+
+        <div class="topbar">
+            <h2>Informações do Pedido</h2>
+
+            <p><strong>Fornecedor:</strong> {{ order.supplier }}</p>
+            <p><strong>Centro de custo:</strong> {{ order.cost_center }}</p>
+            <p><strong>Valor total:</strong> R$ {{ order.calculated_total|floatformat:2 }}</p>
+            <p>
+                <strong>Status:</strong>
+                <span class="badge badge-purchased">
+                    🔵 {{ order.get_status_display }}
+                </span>
+            </p>
+        </div>
+
+        <div class="topbar">
+            <h2>Vincular Itens ao Estoque</h2>
+            <p>Selecione o produto de estoque correspondente para cada item recebido.</p>
+        </div>
+
+        <table>
+            <tr>
+                <th>Item do Pedido</th>
+                <th>Produto no Estoque</th>
+                <th>Qtd Recebida</th>
+                <th>Situação</th>
+            </tr>
+
+            {% for item in order.items.all %}
+
+            <tr>
+                <td>
+                    <strong>{{ item.description }}</strong><br>
+                    <small>{{ item.code }}</small>
+                </td>
+
+                <td>
+                    <select
+                        name="product_{{ item.pk }}"
+                        style="
+                        width:100%;
+                        padding:10px;
+                        border:1px solid #cfd8dc;
+                        border-radius:8px;
+                        "
+                    >
+                        <option value="">Selecione um produto...</option>
+
+                        {% for product in products %}
+                            <option value="{{ product.pk }}">
+                                {{ product.code }} - {{ product.description }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </td>
+
+                <td>
+                    {{ item.quantity }} {{ item.unit }}
+                </td>
+
+                <td>
+                    <span class="badge badge-approved">
+                        🟡 Pendente
+                    </span>
+                </td>
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="4">
+                    Nenhum item encontrado.
+                </td>
+            </tr>
+
+            {% endfor %}
+        </table>
+
+    </div>
+
+    <div class="workspace-sidebar">
+
+        <div class="summary-card">
+
+            <div class="summary-title">Pedido</div>
+            <div class="summary-value" style="font-size:22px;">
+                {{ order.number }}
+            </div>
+
+            <div class="summary-title">Fornecedor</div>
+            <div class="summary-value" style="font-size:18px;">
+                {{ order.supplier }}
+            </div>
+
+            <div class="summary-title">Itens</div>
+            <div class="summary-value">
+                {{ order.items.count }}
+            </div>
+
+            <div class="summary-title">Valor Total</div>
+            <div class="summary-value">
+                R$ {{ order.calculated_total|floatformat:2 }}
+            </div>
+
+        </div>
+
+        <div class="summary-card">
+
+            <a
+                href="{% url 'purchase_order_receiving' order.pk %}"
+                class="action-button action-secondary">
+
+                ⬅ Voltar Recebimento
+
+            </a>
+
+            <a
+                href="{% url 'purchase_order_attachments' order.pk %}"
+                class="action-button action-secondary">
+
+                📎 Ver Anexos
+
+            </a>
+
+            <button
+                type="submit"
+                class="action-button action-primary"
+                style="border:none;">
+
+                📦 Confirmar Entrada
+
+            </button>
+
+        </div>
+        </form>
+    </div>
+    
+</div>
+
+{% endblock %}

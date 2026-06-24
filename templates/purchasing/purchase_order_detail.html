@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="topbar">
+    <h1>Pedido {{ order.number }}</h1>
+    <p>{{ order.get_status_display }} | {{ order.get_priority_display }}</p>
+</div>
+
+<div class="form-actions" style="justify-content: flex-start; margin-bottom: 24px;">
+    <a href="{% url 'purchase_order_workspace' order.pk %}" class="btn-primary">
+        Abrir Workspace
+    </a>
+
+    <a href="{% url 'purchase_order_list' %}" class="btn-secondary">
+        Voltar para Pedidos
+    </a>
+</div>
+
+<div class="cards">
+    <div class="card">
+        <div class="card-title">Fornecedor</div>
+        <div class="card-value" style="font-size: 20px;">
+            {{ order.supplier }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Centro de custo</div>
+        <div class="card-value" style="font-size: 20px;">
+            {{ order.cost_center }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Valor total</div>
+        <div class="card-value" style="font-size: 24px;">
+            R$ {{ order.total_amount }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Solicitante</div>
+        <div class="card-value" style="font-size: 20px;">
+            {{ order.requester }}
+        </div>
+    </div>
+</div>
+
+<div class="topbar">
+    <h2>Descrição</h2>
+    <p>{{ order.description|default:"Sem descrição." }}</p>
+</div>
+
+<div class="topbar">
+    <h2>Itens</h2>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Descrição</th>
+            <th>Quantidade</th>
+            <th>Unidade</th>
+            <th>Valor unitário</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for item in order.items.all %}
+        <tr>
+            <td>{{ item.code }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit }}</td>
+            <td>R$ {{ item.unit_price }}</td>
+            <td>R$ {{ item.total_price }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">Nenhum item cadastrado.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<br>
+
+<div class="topbar">
+    <h2>Anexos</h2>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Tipo</th>
+            <th>Arquivo</th>
+            <th>Enviado por</th>
+            <th>Data</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for attachment in order.attachments.all %}
+        <tr>
+            <td>{{ attachment.get_file_type_display }}</td>
+            <td>
+                <a href="{{ attachment.file.url }}" target="_blank">
+                    Abrir arquivo
+                </a>
+            </td>
+            <td>{{ attachment.uploaded_by }}</td>
+            <td>{{ attachment.created_at }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Nenhum anexo cadastrado.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<br>
+
+<div class="topbar">
+    <h2>Histórico</h2>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Usuário</th>
+            <th>Ação</th>
+            <th>Mensagem</th>
+            <th>Data</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for log in order.logs.all %}
+        <tr>
+            <td>{{ log.user|default:"-" }}</td>
+            <td>{{ log.get_action_display }}</td>
+            <td>{{ log.message }}</td>
+            <td>{{ log.created_at }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Nenhum histórico encontrado.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

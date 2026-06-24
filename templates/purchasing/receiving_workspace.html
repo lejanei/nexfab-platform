@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="topbar">
+    <h1>📦 Recebimento</h1>
+    <p>
+        Confira os itens do pedido
+        <strong>{{ order.number }}</strong>
+        antes de finalizar a conferência.
+    </p>
+</div>
+
+<div class="workspace">
+
+    <div class="workspace-main">
+
+        <div class="topbar">
+            <h2>Informações do Pedido</h2>
+
+            <p>
+                <strong>Fornecedor:</strong>
+                {{ order.supplier }}
+            </p>
+
+            <p>
+                <strong>Centro de custo:</strong>
+                {{ order.cost_center }}
+            </p>
+
+            <p>
+                <strong>Valor total:</strong>
+                R$ {{ order.calculated_total|floatformat:2 }}
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                <span class="badge badge-purchased">
+                    🔵 {{ order.get_status_display }}
+                </span>
+            </p>
+        </div>
+
+        <div class="topbar">
+            <h2>Conferência dos Itens</h2>
+            <p>
+                Valide as quantidades recebidas antes de finalizar o recebimento.
+            </p>
+        </div>
+
+        <table>
+            <tr>
+                <th>Código</th>
+                <th>Descrição</th>
+                <th>Qtd Pedida</th>
+                <th>Unidade</th>
+                <th>Qtd Recebida</th>
+                <th>Situação</th>
+            </tr>
+
+            {% for item in order.items.all %}
+
+            <tr>
+                <td>{{ item.code }}</td>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unit }}</td>
+                <td>
+                    <input
+                        type="number"
+                        class="received_qty"
+                        data-requested="{{ item.quantity }}"
+                        value="{{ item.quantity }}"
+                        step="0.001"
+                        style="
+                        width:110px;
+                        padding:8px;
+                        border:1px solid #cfd8dc;
+                        border-radius:8px;
+                        "
+                        >
+                </td>
+                <td>
+                    <span
+                        class="badge badge-received"
+                        id="status_{{ forloop.counter }}">
+                        🟢 Completo
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">
+                    Nenhum item encontrado.
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="4" style="text-align:right; font-weight:bold;">
+                    RESUMO DA CONFERÊNCIA
+                </td>
+
+                <td colspan="2" style="font-weight:bold; color:#1976d2;">
+                    {{ order.items.count }} itens | R$ {{ order.calculated_total|floatformat:2 }}
+                </td>
+            </tr>
+        </table>
+
+        <br>
+
+        <div class="topbar">
+            <h2>Conferência</h2>
+            <p>
+                Registre observações sobre divergências, avarias, NF, transportadora ou pendências.
+            </p>
+
+            <textarea
+                name="notes"
+                placeholder="Ex: Material recebido normalmente. Divergências, avarias, pendências, transportadora ou nota fiscal..."
+                style="
+                width:100%;
+                min-height:130px;
+                padding:12px;
+                border:1px solid #cfd8dc;
+                border-radius:10px;
+                font-size:15px;
+                box-sizing:border-box;
+                "
+            ></textarea>
+        </div>
+
+    </div>
+
+    <div class="workspace-sidebar">
+
+        <div class="summary-card">
+
+            <div class="summary-title">
+                Pedido
+            </div>
+
+            <div class="summary-value" style="font-size:22px;">
+                {{ order.number }}
+            </div>
+
+            <div class="summary-title">
+                Fornecedor
+            </div>
+
+            <div class="summary-value" style="font-size:18px;">
+                {{ order.supplier }}
+            </div>
+
+            <div class="summary-title">
+                Itens
+            </div>
+
+            <div class="summary-value">
+                {{ order.items.count }}
+            </div>
+
+            <div class="summary-title">
+                Valor Total
+            </div>
+
+            <div class="summary-value">
+                R$ {{ order.calculated_total|floatformat:2 }}
+            </div>
+
+            <div class="summary-title">
+                Status
+            </div>
+
+            <div class="summary-value" style="font-size:18px;">
+                <span class="badge badge-purchased">
+                    🔵 {{ order.get_status_display }}
+                </span>
+            </div>
+
+        </div>
+
+        <div class="summary-card">
+
+            <a
+                href="{% url 'purchase_order_workspace' order.pk %}"
+                class="action-button action-secondary">
+
+                ⬅ Voltar ao Pedido
+
+            </a>
+
+            <a
+                href="{% url 'purchase_order_attachments' order.pk %}"
+                class="action-button action-secondary">
+
+                📎 Ver Anexos
+
+            </a>
+
+            <a
+                href="{% url 'receiving_stock_workspace' order.pk %}"
+                class="action-button action-secondary">
+
+                📦 Entrada Estoque
+
+            </a>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="notes"
+                    value="Material recebido."
+                >
+
+                <button
+                    type="submit"
+                    class="action-button action-primary"
+                    style="border:none;">
+
+                    ✅ Finalizar Conferência
+
+                </button>
+            </form>
+
+        </div>
+
+    </div>    
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="topbar">
+    <h1>📎 Anexos</h1>
+    <p>Gerencie os documentos do pedido <strong>{{ order.number }}</strong>.</p>
+</div>
+
+<div class="workspace">
+
+    <div class="workspace-main">
+
+        <div class="topbar">
+            <h2>Upload de Arquivo</h2>
+            <p>Anexe orçamentos, notas fiscais, imagens, catálogos ou documentos do pedido.</p>
+
+            <form method="POST" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Arquivo</label>
+                        {{ form.file }}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        {{ form.file_type }}
+                    </div>
+
+                </div>
+
+                <br>
+
+                <button type="submit" class="btn-primary">
+                    📤 Enviar Arquivo
+                </button>
+
+            </form>
+        </div>
+
+        <table>
+            <tr>
+                <th>Arquivo</th>
+                <th>Tipo</th>
+                <th>Enviado por</th>
+                <th>Data</th>
+                <th>Ações</th>
+            </tr>
+
+            {% for attachment in attachments %}
+
+            <tr>
+                <td>
+                    📄
+                    <a href="{{ attachment.file.url }}" target="_blank">
+                        {{ attachment.filename }}
+                    </a>
+                </td>
+
+                <td>{{ attachment.get_file_type_display }}</td>
+
+                <td>{{ attachment.uploaded_by }}</td>
+
+                <td>{{ attachment.created_at|date:"d/m/Y H:i" }}</td>
+
+                <td>
+                    <a
+                        href="{{ attachment.file.url }}"
+                        target="_blank"
+                        style="
+                        text-decoration:none;
+                        margin-right:10px;
+                        "
+                        >
+
+                        ⬇ Download
+
+                        </a>
+                    <a
+                        href="{% url 'purchase_order_attachment_delete' attachment.pk %}"
+                        style="
+                        text-decoration:none;
+                        color:#e53935;
+                        "
+                        >
+
+                        🗑 Excluir
+
+                        </a>
+
+                </td>
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="5">
+                    📎Nenhum anexo cadastrado.
+                </td>
+            </tr>
+
+            {% endfor %}
+        </table>
+
+    </div>
+
+    <div class="workspace-sidebar">
+
+        <div class="summary-card">
+
+            <div class="summary-title">
+                Pedido
+            </div>
+
+            <div class="summary-value" style="font-size:22px;">
+                {{ order.number }}
+            </div>
+
+            <div class="summary-title">
+                Fornecedor
+            </div>
+
+            <div class="summary-value" style="font-size:18px;">
+                {{ order.supplier }}
+            </div>
+
+            <div class="summary-title">
+                Anexos
+            </div>
+
+            <div class="summary-value">
+                {{ attachments.count }}
+            </div>
+
+            <div class="summary-title">
+                Valor Total
+            </div>
+
+            <div class="summary-value">
+                R$ {{ order.calculated_total }}
+            </div>
+
+        </div>
+
+        <div class="summary-card">
+
+            <a
+                href="{% url 'purchase_order_workspace' order.pk %}"
+                class="action-button action-secondary">
+
+                ⬅ Voltar ao Pedido
+
+            </a>
+
+            <a
+                href="#"
+                class="action-button action-primary">
+
+                📤 Novo Upload
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
