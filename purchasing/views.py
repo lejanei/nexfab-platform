@@ -16,15 +16,21 @@ from inventory.models import StockMovement
 from .forms import StockConsumptionForm
 from .models import CostCenter
 from. models import Supplier
+from core.utils import get_company
 
 def purchase_order_list(request):
-    orders = PurchaseOrder.objects.order_by(
+    
+    company = get_company(request)
+    orders = PurchaseOrder.objects.filter(
+        company=company
+    ).order_by(
         "-created_at"
     )
     
     critical_products = Product.objects.filter(
-        is_active=True,
-        current_stock__lt=F("minimum_stock")
+    company=company,
+    is_active=True,
+    current_stock__lt=F("minimum_stock")
     ).order_by(
         "description"
     )
@@ -41,21 +47,27 @@ def purchase_order_list(request):
         
         "critical_products_count": critical_products.count(),
         
-        "total_orders": PurchaseOrder.objects.count(),
+        "total_orders": PurchaseOrder.objects.filter(
+            company=company
+        ).count(),
 
         "draft_count": PurchaseOrder.objects.filter(
+            company=company,
             status="DRAFT"
         ).count(),
 
         "approved_count": PurchaseOrder.objects.filter(
+            company=company,
             status="APPROVED"
         ).count(),
 
         "purchased_count": PurchaseOrder.objects.filter(
+            company=company,
             status="PURCHASED"
         ).count(),
 
         "received_count": PurchaseOrder.objects.filter(
+            company=company,
             status="RECEIVED"
         ).count(),
 
@@ -72,9 +84,12 @@ def purchase_order_list(request):
 
 def purchase_order_detail(request, pk):
 
+    company = get_company(request)
+
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
 
     return render(
@@ -132,9 +147,12 @@ def purchase_order_create(request):
     
 def purchase_order_workspace(request, pk):
 
+    company = get_company(request)
+
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
     
     if request.method == "POST":
@@ -188,6 +206,10 @@ def purchase_order_workspace(request, pk):
     else:
 
         item_form = PurchaseOrderItemForm()
+        
+        header_form = PurchaseOrderHeaderForm(
+            instance=order
+        )
 
     return render(
         request,
@@ -199,10 +221,7 @@ def purchase_order_workspace(request, pk):
         }
     )
     
-def purchase_order_item_delete(
-    request,
-    pk
-):
+def purchase_order_item_delete(request,pk):
 
     item = get_object_or_404(
         PurchaseOrderItem,
@@ -284,9 +303,12 @@ def purchase_order_item_edit(request, pk):
 
 def purchase_order_attachments(request, pk):
 
+    company = get_company(request)
+
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
 
     if request.method == "POST":
@@ -348,9 +370,12 @@ def purchase_order_attachment_delete(
     
 def send_for_approval(request, pk):
 
+    company = get_company(request)
+
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
 
     if order.status == "DRAFT":
@@ -366,9 +391,12 @@ def send_for_approval(request, pk):
     
 def register_purchase(request, pk):
 
+    company = get_company(request)
+
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
 
     if order.status == "APPROVED":
@@ -382,13 +410,16 @@ def register_purchase(request, pk):
         pk=order.pk
     )
 
-
 def receive_material(request, pk):
+
+    company = get_company(request)
 
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
+    
 
     if order.status == "PURCHASED":
 
@@ -403,9 +434,12 @@ def receive_material(request, pk):
     
 def purchase_order_delete(request, pk):
 
+    company = get_company(request)
+
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
 
     if order.status == "DRAFT":
@@ -430,9 +464,12 @@ def purchase_order_delete(request, pk):
     
 def purchase_order_receiving(request, pk):
 
+    company = get_company(request)
+
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
 
     if request.method == "POST":
@@ -484,9 +521,12 @@ def purchase_order_receiving(request, pk):
     
 def receiving_stock_workspace(request, pk):
 
+    company = get_company(request)
+
     order = get_object_or_404(
         PurchaseOrder,
-        pk=pk
+        pk=pk,
+        company=company
     )
 
     products = Product.objects.filter(

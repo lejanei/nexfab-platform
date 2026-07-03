@@ -1,42 +1,41 @@
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404
-from .models import Product
-from decimal import Decimal
-
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 
+from core.utils import get_company
+
+from .models import Product, StockMovement
 from .forms import StockAdjustmentForm
-from .models import StockMovement
 
 
 def inventory_list(request):
 
-    products = Product.objects.order_by(
+    company = get_company(request)
+
+    products = Product.objects.filter(
+        company=company,
+        is_active=True
+    ).order_by(
         "description"
     )
 
     context = {
-
         "products": products,
-
         "total_products": products.count(),
 
         "normal_products": sum(
             1 for p in products
-            if p.stock_status=="NORMAL"
+            if p.stock_status == "NORMAL"
         ),
 
         "low_products": sum(
             1 for p in products
-            if p.stock_status=="LOW"
+            if p.stock_status == "LOW"
         ),
 
         "critical_products": sum(
             1 for p in products
-            if p.stock_status=="CRITICAL"
+            if p.stock_status == "CRITICAL"
         ),
-
     }
 
     return render(
@@ -44,15 +43,18 @@ def inventory_list(request):
         "inventory/inventory_list.html",
         context
     )
-    
+
 
 def product_workspace(request, pk):
 
+    company = get_company(request)
+
     product = get_object_or_404(
         Product,
-        pk=pk
+        pk=pk,
+        company=company
     )
-    
+
     movements = product.movements.all()
 
     return render(
@@ -63,12 +65,16 @@ def product_workspace(request, pk):
             "movements": movements,
         }
     )
-    
+
+
 def stock_adjustment_workspace(request, pk):
+
+    company = get_company(request)
 
     product = get_object_or_404(
         Product,
-        pk=pk
+        pk=pk,
+        company=company
     )
 
     if request.method == "POST":
